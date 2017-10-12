@@ -6,20 +6,29 @@ import pandas as pd
 
 def beta_geometric_nbd_model(T, r, alpha, a, b, size=1):
     """
-    Generate artificial data according to the BG/NBD model. See [1] for model details
+    Generate artificial data according to the BG/NBD model.
 
+    See [1] for model details
 
-    Parameters:
-        T: scalar or array, the length of time observing new customers.
-        r, alpha, a, b: scalars, represening parameters in the model. See [1]
-        size: the number of customers to generate
+    Parameters
+    ----------
+    T: array_like
+        The length of time observing new customers.
+    r, alpha, a, b: float
+        Parameters in the model. See [1]_
+    size: int, optional
+        The number of customers to generate
 
-    Returns:
-        DataFrame, with index as customer_ids and the following columns:
+    Returns
+    -------
+    DataFrame
+        With index as customer_ids and the following columns:
         'frequency', 'recency', 'T', 'lambda', 'p', 'alive', 'customer_id'
 
-    [1]: '"Counting Your Customers" the Easy Way: An Alternative to the Pareto/NBD Model'
-    (http://brucehardie.com/papers/bgnbd_2004-04-20.pdf)
+    References
+    ----------
+    .. [1]: '"Counting Your Customers" the Easy Way: An Alternative to the Pareto/NBD Model'
+       (http://brucehardie.com/papers/bgnbd_2004-04-20.pdf)
 
     """
     if type(T) in [float, int]:
@@ -47,28 +56,36 @@ def beta_geometric_nbd_model(T, r, alpha, a, b, size=1):
             alive = np.random.random() > p
 
         times = np.array(times).cumsum()
-        df.ix[i] = len(times), np.max(times if times.shape[0] > 0 else 0), T[i], l, p, alive, i
+        df.iloc[i] = len(times), np.max(times if times.shape[0] > 0 else 0), T[i], l, p, alive, i
 
     return df.set_index('customer_id')
 
 
 def pareto_nbd_model(T, r, alpha, s, beta, size=1):
     """
-    Generate artificial data according to the Pareto/NBD model. See [2] for model details
+    Generate artificial data according to the Pareto/NBD model.
 
+    See [2]_ for model details.
 
-    Parameters:
-        T: scalar or array, the length of time observing new customers.
-        r, alpha, s, beta: scalars, representing parameters in the model. See [2]
-        size: the number of customers to generate, equal to size of T if T is
-           an array.
+    Parameters
+    ----------
+    T: array_like
+        The length of time observing new customers.
+    r, alpha, s, beta: float
+        Parameters in the model. See [1]_
+    size: int, optional
+        The number of customers to generate
 
-    Returns:
-        DataFrame, with index as customer_ids and the following columns:
+    Returns
+    -------
+    :obj: DataFrame
+        with index as customer_ids and the following columns:
         'frequency', 'recency', 'T', 'lambda', 'mu', 'alive', 'customer_id'
 
-    [2]: Fader, Peter S. and Bruce G. S. Hardie (2005), "A Note on Deriving the Pareto/NBD Model
-    and Related Expressions," <http://brucehardie.com/notes/009/>.
+    References
+    ----------
+    .. [2]: Fader, Peter S. and Bruce G. S. Hardie (2005), "A Note on Deriving the Pareto/NBD Model
+       and Related Expressions," <http://brucehardie.com/notes/009/>.
 
     """
     if type(T) in [float, int]:
@@ -95,26 +112,40 @@ def pareto_nbd_model(T, r, alpha, s, beta, size=1):
             next_purchase_in = stats.expon.rvs(scale=1. / l)
 
         times = np.array(times).cumsum()
-        df.ix[i] = len(times), np.max(times if times.shape[0] > 0 else 0), T[i], l, mu, time_of_death > T[i], i
+        df.iloc[i] = len(times), np.max(times if times.shape[0] > 0 else 0), T[i], l, mu, time_of_death > T[i], i
 
     return df.set_index('customer_id')
 
 
 def modified_beta_geometric_nbd_model(T, r, alpha, a, b, size=1):
     """
-    Generate artificial data according to the MBG/NBD model. See [1,2] for model details
-    Parameters:
-        T: scalar or array, the length of time observing new customers.
-        r, alpha, a, b: scalars, represening parameters in the model. See [1,2]
-        size: the number of customers to generate
-    Returns:
-        DataFrame, with index as customer_ids and the following columns:
+    Generate artificial data according to the MBG/NBD model.
+
+    See [3]_, [4]_ for model details
+
+    Parameters
+    ----------
+    T: array_like
+        The length of time observing new customers.
+    r, alpha, a, b: float
+        Parameters in the model. See [1]_
+    size: int, optional
+        The number of customers to generate
+
+    Returns
+    -------
+    DataFrame
+        with index as customer_ids and the following columns:
         'frequency', 'recency', 'T', 'lambda', 'p', 'alive', 'customer_id'
-    [1]: '"Counting Your Customers" the Easy Way: An Alternative to the Pareto/NBD Model'
-    (http://brucehardie.com/papers/bgnbd_2004-04-20.pdf)
-    [2] Batislam, E.P., M. Denizel, A. Filiztekin (2007),
-        "Empirical validation and comparison of models for customer base analysis,"
-        International Journal of Research in Marketing, 24 (3), 201-209.
+
+    References
+    ----------
+    .. [1]: '"Counting Your Customers" the Easy Way: An Alternative to the Pareto/NBD Model'
+       (http://brucehardie.com/papers/bgnbd_2004-04-20.pdf)
+    .. [2] Batislam, E.P., M. Denizel, A. Filiztekin (2007),
+       "Empirical validation and comparison of models for customer base analysis,"
+       International Journal of Research in Marketing, 24 (3), 201-209.
+
     """
     if type(T) in [float, int]:
         T = T * np.ones(size)
@@ -141,6 +172,6 @@ def modified_beta_geometric_nbd_model(T, r, alpha, a, b, size=1):
             alive = np.random.random() > p
 
         times = np.array(times).cumsum()
-        df.ix[i] = len(times), np.max(times if times.shape[0] > 0 else 0), T[i], l, p, alive, i
+        df.iloc[i] = len(times), np.max(times if times.shape[0] > 0 else 0), T[i], l, p, alive, i
 
     return df.set_index('customer_id')
