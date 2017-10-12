@@ -373,10 +373,13 @@ def _check_inputs(frequency, recency=None, T=None, monetary_value=None):
 
 
 def customer_lifetime_value(transaction_prediction_model, frequency, recency,
-                            T, monetary_value, time=12, discount_rate=0.01):
+                            T, monetary_value, discount_periods=12,
+                            discount_period_length=30, discount_rate=0.01):
     """Compute the average lifetime value for a group of one or more customers.
 
-    The algorithm presumes monthly discounted lifetime values.
+    The default arguments presume monthly discounted lifetime values, i.e.
+    discount_period_length = 30, with a one year forecast, i.e.
+    discount_periods = 12.
 
     Parameters:
         transaction_prediction_model: The model to predict future transactions,
@@ -389,8 +392,8 @@ def customer_lifetime_value(transaction_prediction_model, frequency, recency,
         T: The vector of customers' age (time since first purchase).
         monetary_value: The monetary value vector of customer's purchases
             (denoted $m$ in literature).
-        time: The expected lifetime for the user in months. Default: 12
-        discount_rate: The monthly adjusted discount rate. Default: 1
+        discount_periods: The expected lifetime for the user. Default: 12
+        discount_rate: The monthly adjusted discount rate. Default: 0.01
 
     Returns:
         Series object with customer IDs as index and the estimated customer
@@ -399,15 +402,17 @@ def customer_lifetime_value(transaction_prediction_model, frequency, recency,
     df = pd.DataFrame(index=frequency.index)
     df['clv'] = 0  # initialize the clv column to zeros
 
-    for i in range(30, (time * 30) + 1, 30):
+    for i in range(discount_period_length,
+                   (discount_periods * discount_period_length) + 1,
+                   discount_period_length):
         # since the prediction of number of transactions is cumulative, we have
         # to subtract the previous periods
         expected_number_of_transactions = transaction_prediction_model \
             .predict(i, frequency, recency, T) \
-            - transaction_prediction_model.predict(i - 30, frequency, recency,
-                                                   T)
+            - transaction_prediction_model.predict(i - discount_period_length,
+                                                   frequency, recency, T)
         # sum up the CLV estimates of all of the periods
         df['clv'] += (monetary_value * expected_number_of_transactions) \
-            / (1 + discount_rate) ** (i / 30)
+            / (1 + discount_rate) ** (i / discount_period_length)
 
     return df['clv']  # return as a series
